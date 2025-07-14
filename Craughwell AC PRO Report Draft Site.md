@@ -1,0 +1,1 @@
+Draft notes for the Weekly Craughwell AC Newspaper reports. 

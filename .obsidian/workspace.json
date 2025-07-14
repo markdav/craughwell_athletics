@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Craughwell AC PRO Report Draft Site.md",
+                "file": "PRO_Reports/2025-07-13/2025-07-13.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Craughwell AC PRO Report Draft Site"
+              "title": "2025-07-13"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Craughwell AC PRO Report Draft Site.md",
+                "file": "PRO_Reports/2025-07-13/2025-07-13.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": false
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Craughwell AC PRO Report Draft Site"
+              "title": "Backlinks for 2025-07-13"
             }
           },
           {
@@ -160,8 +160,19 @@
               "icon": "calendar-with-checkmark",
               "title": "Calendar"
             }
+          },
+          {
+            "id": "1dd438e3cbb244fa",
+            "type": "leaf",
+            "state": {
+              "type": "git-view",
+              "state": {},
+              "icon": "git-pull-request",
+              "title": "Source Control"
+            }
           }
-        ]
+        ],
+        "currentTab": 5
       }
     ],
     "direction": "horizontal",
@@ -178,14 +189,18 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "8de551e05b3b0f1f",
+  "active": "7ffee4281f499d79",
   "lastOpenFiles": [
+    "PRO_Reports/2025-07-13/2025-frazer.jpeg",
+    "PRO_Reports/2025-07-13/u18-boys.jpeg",
+    "PRO_Reports/2025-07-13/u18-girls.jpeg",
+    "PRO_Reports/2025-07-13/2025-gallagher.jpeg",
+    "Craughwell AC PRO Report Draft Site.md",
     "New Text Document.txt",
     "PRO_Reports/2025-07-13/2025-07-13.md",
     "PRO_Reports/2025-07-13",
     "PRO_Reports",
     "daily/2025-07-14.md",
-    "daily",
-    "Craughwell AC PRO Report Draft Site.md"
+    "daily"
   ]
 }

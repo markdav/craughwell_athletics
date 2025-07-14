@@ -174,11 +174,13 @@
       "canvas:Create new canvas": false,
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
-      "command-palette:Open command palette": false
+      "command-palette:Open command palette": false,
+      "obsidian-git:Open Git source control": false
     }
   },
-  "active": "ceb6964d1ba8677b",
+  "active": "8de551e05b3b0f1f",
   "lastOpenFiles": [
+    "New Text Document.txt",
     "PRO_Reports/2025-07-13/2025-07-13.md",
     "PRO_Reports/2025-07-13",
     "PRO_Reports",

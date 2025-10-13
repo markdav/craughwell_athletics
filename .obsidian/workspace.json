@@ -23,28 +23,18 @@
             "id": "ae69d360ffe489b3",
             "type": "leaf",
             "state": {
-              "type": "image",
+              "type": "markdown",
               "state": {
-                "file": "PRO_Reports/2025-10-13/2025-iuaa-xc-lads.jpeg"
+                "file": "PRO_Reports/2025-10-13/2025-10-13.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-image",
-              "title": "2025-iuaa-xc-lads"
-            }
-          },
-          {
-            "id": "174127c9855bac04",
-            "type": "leaf",
-            "state": {
-              "type": "image",
-              "state": {
-                "file": "PRO_Reports/2025-10-13/2025-iuaa-girls.jpg"
-              },
-              "icon": "lucide-image",
-              "title": "2025-iuaa-girls"
+              "icon": "lucide-file",
+              "title": "2025-10-13"
             }
           }
         ],
-        "currentTab": 2
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -213,11 +203,14 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "1dd438e3cbb244fa",
+  "active": "ae69d360ffe489b3",
   "lastOpenFiles": [
-    "WhatsApp Image 2025-10-11 at 15.15.30.jpeg",
-    "PRO_Reports/2025-10-13/2025-iuaa-girls.jpg",
+    "tom-clarke.jpeg",
+    "freya-leah.jpeg",
+    "u13-girls.jpeg",
     "PRO_Reports/2025-10-13/2025-iuaa-xc-lads.jpeg",
+    "PRO_Reports/2025-10-13/2025-iuaa-girls.jpg",
+    "WhatsApp Image 2025-10-11 at 15.15.30.jpeg",
     "PRO_Reports/2025-10-13/2025-10-13.md",
     "PRO_Reports/2025-10-13/iuaa-relay-2025.jpg",
     "PRO_Reports/2025-10-13/oisin-iuaa-xc.jpg",
@@ -226,8 +219,6 @@
     "PRO_Reports/2025-07-28/2025-07-28.md",
     "PRO_Reports/2025-10-13",
     "PRO_Reports/2025-07-28/mike-conor-brendan.jpeg",
-    "PRO_Reports/2025-07-28/oisin-alisha.jpg.jpeg",
-    "PRO_Reports/2025-07-28/leghanna-sarah.jpeg",
     "PRO_Reports/2025-07-28/2025_league_final 1.csv",
     "PRO_Reports/2025-07-28/2025_league_final.csv",
     "PRO_Reports/2025-07-13/2025-07-13.md",

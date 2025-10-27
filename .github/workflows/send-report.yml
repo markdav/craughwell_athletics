@@ -58,38 +58,38 @@ jobs:
       - name: Prepare email body
         id: build_email
         run: |
-          REPORT_FILE=$(find PRO_Reports -type f -name "*.md" | sort | tail -n 1)
+          REPORT_FILE="${{ steps.find_report.outputs.new_file }}"
           TEMPLATE_FILE="PRO_Reports/mail-template.md"
-          OUTPUT_FILE="email_body.html"
 
           if [ -f "$TEMPLATE_FILE" ]; then
-            # Combine the template and report markdown
-            cat "$TEMPLATE_FILE" | sed '/REPORT_CONTENT/r '"$REPORT_FILE"'' | sed '/REPORT_CONTENT/d' > combined.md
+            sed '/REPORT GOES HERE/r '"$REPORT_FILE"'' "$TEMPLATE_FILE" | sed '/REPORT GOES HERE/d' > combined.md
           else
             cp "$REPORT_FILE" combined.md
           fi
 
-          # Convert Markdown to HTML (optional, but looks better in email)
-          echo "::group::Converted Markdown"
-          cat combined.md
-          echo "::endgroup::"
-
-          # Use GitHub Actions markdown-to-html conversion
-          echo "$(cat combined.md)" > "$OUTPUT_FILE"
-
-          echo "email_body<<EOF" >> $GITHUB_OUTPUT
-          echo "$(cat combined.md)" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "email_body<<EOF"
+            cat combined.md
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Send report email via Resend
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
-          curl -X POST 'https://api.resend.com/emails' \
+          body=$(jq -n \
+            --arg from 'Craughwell AC Reports <onboarding@resend.dev>' \
+            --arg to 'mark.davis2@gmail.com,mark.davis2@hpe.com' \
+            --arg subject 'Weekly Athletics Report' \
+            --arg html "$(jq -Rs . < combined.md | jq -r .)" \
+            '{from:$from, to:$to, subject:$subject, html:$html}')
+
+          echo "Sending email..."
+          curl -s -o response.txt -w "%{http_code}" \
+            -X POST 'https://api.resend.com/emails' \
             -H "Authorization: Bearer $RESEND_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "$(jq -n --arg from 'Craughwell AC Reports <reports@craughwellac.ie>' \
-                      --arg to 'mark.davis2@gmail.com,mark.davis2@hpe.com' \
-                      --arg subject 'Weekly Athletics Report' \
-                      --arg html "${{ steps.build_email.outputs.email_body }}" \
-                      '{from:$from, to:$to, subject:$subject, html:$html}')"
+            -d "$body"
+
+          echo "Response:"
+          cat response.txt

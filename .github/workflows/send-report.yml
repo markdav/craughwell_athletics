@@ -18,14 +18,19 @@ jobs:
       - name: Find new markdown report in PRO_Reports
         id: find_report
         run: |
-          new_file=$(git diff --name-only HEAD~1 HEAD | grep -E '^PRO_Reports/[0-9]{4}-[0-9]{2}-[0-9]{2}/[0-9]{4}-[0-9]{2}-[0-9]{2}\.md$' || true)
+          new_file=$(git diff --name-only HEAD~1 HEAD | grep -E '^PRO_Reports/[0-9]{4}-[0-9]{2}-[0-9]{2}/[0-9]{4}-[0-9]{2}-[0-9]{2}\.md$' || echo "")
           if [ -z "$new_file" ]; then
             echo "No new report file found — skipping."
             echo "skip=true" >> $GITHUB_OUTPUT
             exit 0
           fi
           echo "Found report: $new_file"
+          
+          # Extract the date folder name (e.g., "2025-10-27")
+          report_date=$(echo "$new_file" | grep -oP '[0-9]{4}-[0-9]{2}-[0-9]{2}' | head -1)
+          
           echo "report_file=$new_file" >> $GITHUB_OUTPUT
+          echo "report_date=$report_date" >> $GITHUB_OUTPUT
           echo "skip=false" >> $GITHUB_OUTPUT
 
       - name: Prepare email body and attachments
@@ -75,7 +80,7 @@ jobs:
           jq -n \
             --arg from 'Craughwell AC Reports <onboarding@resend.dev>' \
             --argjson to '["mark.davis2@gmail.com","mark.davis2@hpe.com"]' \
-            --arg subject 'Weekly Athletics Report' \
+            --arg subject "Weekly Athletics Report - ${{ steps.find_report.outputs.report_date }}" \
             --rawfile html combined.html \
             --slurpfile attachments attachments.json \
             '{

@@ -21,15 +21,17 @@ jobs:
           new_file=$(git diff --name-only HEAD~1 HEAD | grep -E '^PRO_Reports/[0-9]{4}-[0-9]{2}-[0-9]{2}/[0-9]{4}-[0-9]{2}-[0-9]{2}\.md$' || true)
           if [ -z "$new_file" ]; then
             echo "No new report file found — skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
             exit 0
           fi
           echo "Found report: $new_file"
-          echo "$new_file" > report_file.txt
+          echo "report_file=$new_file" >> $GITHUB_OUTPUT
+          echo "skip=false" >> $GITHUB_OUTPUT
 
       - name: Prepare email body and attachments
-        if: ${{ always() }}
+        if: steps.find_report.outputs.skip != 'true'
         run: |
-          REPORT_FILE=$(cat report_file.txt)
+          REPORT_FILE="${{ steps.find_report.outputs.report_file }}"
           TEMPLATE_FILE="PRO_Reports/mail-template.md"
 
           # Merge template with report
@@ -43,41 +45,62 @@ jobs:
           awk '{print $0 "<br>"}' combined.md > combined.html
 
           # Parse ![[image.jpg]] references for attachments
-          images=$(grep -oP '!\[\[(.*?)\]\]' "$REPORT_FILE" | sed -E 's/!\[\[(.*)\]\]/\1/')
-          image_list="["
-          for img in $images; do
-            image_path="$(dirname "$REPORT_FILE")/$img"
-            if [ -f "$image_path" ]; then
-              b64=$(base64 -w 0 "$image_path")
-              filename=$(basename "$image_path")
-              image_list="${image_list}{\"filename\":\"$filename\",\"content\":\"$b64\"},"
-            else
-              echo "WARNING: Image not found: $image_path"
-            fi
-          done
-          image_list="${image_list%,}]"
-          echo "$image_list" > attachments.json
+          images=$(grep -oP '!\[\[(.*?)\]\]' "$REPORT_FILE" | sed -E 's/!\[\[(.*)\]\]/\1/' || echo "")
+          
+          # Build attachments JSON array
+          echo "[]" > attachments.json
+          if [ -n "$images" ]; then
+            for img in $images; do
+              image_path="$(dirname "$REPORT_FILE")/$img"
+              if [ -f "$image_path" ]; then
+                filename=$(basename "$image_path")
+                b64=$(base64 -w 0 "$image_path")
+                # Use jq to properly append to array with file input to avoid arg length issues
+                echo "{\"filename\":\"$filename\",\"content\":\"$b64\"}" | jq -s '.' > temp_attachment.json
+                jq --slurpfile new temp_attachment.json '. + $new[0]' attachments.json > attachments_new.json
+                mv attachments_new.json attachments.json
+                rm temp_attachment.json
+              else
+                echo "WARNING: Image not found: $image_path"
+              fi
+            done
+          fi
 
       - name: Send report via Resend
-        if: ${{ always() }}
+        if: steps.find_report.outputs.skip != 'true'
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
-          html_body=$(cat combined.html)
-          attachments=$(cat attachments.json)
+          # Build JSON payload using files instead of command-line args
+          jq -n \
+            --arg from 'Craughwell AC Reports <onboarding@resend.dev>' \
+            --argjson to '["mark.davis2@gmail.com","mark.davis2@hpe.com"]' \
+            --arg subject 'Weekly Athletics Report' \
+            --rawfile html combined.html \
+            --slurpfile attachments attachments.json \
+            '{
+              from: $from,
+              to: $to,
+              subject: $subject,
+              html: $html,
+              attachments: $attachments[0]
+            }' > payload.json
 
           echo "Sending email..."
-          curl -s -o response.txt -w "%{http_code}" \
+          http_code=$(curl -s -o response.txt -w "%{http_code}" \
             -X POST 'https://api.resend.com/emails' \
             -H "Authorization: Bearer $RESEND_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "$(jq -n \
-                  --arg from 'Craughwell AC Reports <onboarding@resend.dev>' \
-                  --argjson to '["mark.davis2@gmail.com","mark.davis2@hpe.com"]' \
-                  --arg subject 'Weekly Athletics Report' \
-                  --arg html "$html_body" \
-                  --argjson attachments "$attachments" \
-                  '{from:$from, to:$to, subject:$subject, html:$html, attachments:$attachments}')"
+            -d @payload.json)
 
+          echo "HTTP Status: $http_code"
           echo "Response:"
           cat response.txt
+          
+          # Check if request was successful
+          if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+            echo "✅ Email sent successfully!"
+          else
+            echo "❌ Failed to send email"
+            exit 1
+          fi

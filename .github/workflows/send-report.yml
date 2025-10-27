@@ -67,10 +67,18 @@ jobs:
             cp "$REPORT_FILE" combined.md
           fi
 
-          # Correct way to write multi-line output for GitHub Actions
+          # Install pandoc for Markdown -> HTML
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+          # Convert markdown to HTML
+          pandoc combined.md -f markdown -t html -o combined.html
+
+          # Write output for GitHub Actions safely
           echo "email_body<<EOF" >> $GITHUB_OUTPUT
-          cat combined.md >> $GITHUB_OUTPUT
+          cat combined.html >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+
 
       - name: Send report email via Resend
         env:

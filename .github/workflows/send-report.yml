@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  
 
       - name: Find the new markdown report file (in PRO_Reports)
         id: find_report

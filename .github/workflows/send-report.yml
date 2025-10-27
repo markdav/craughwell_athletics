@@ -1,0 +1,68 @@
+name: Send Athletics Report Email
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  send-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find the new markdown report file (in PRO_Reports)
+        id: find_report
+        run: |
+          # Look for newly added or modified markdown files inside PRO_Reports/date/date.md pattern
+          new_file=$(git diff --name-only HEAD~1 HEAD | grep -E '^PRO_Reports/[0-9]{4}-[0-9]{2}-[0-9]{2}/[0-9]{4}-[0-9]{2}-[0-9]{2}\.md$' || true)
+
+          if [ -z "$new_file" ]; then
+            echo "No new report file found in PRO_Reports — skipping."
+            exit 0
+          fi
+
+          echo "new_file=$new_file" >> $GITHUB_OUTPUT
+          echo "Found report file: $new_file"
+
+      - name: Parse markdown for image references
+        id: parse_images
+        if: steps.find_report.outputs.new_file != ''
+        run: |
+          report_file="${{ steps.find_report.outputs.new_file }}"
+          images=$(grep -oP '!\\[\\[(.*?)\\]\\]' "$report_file" | sed -E 's/!\[\[(.*)\]\]/\1/' | xargs)
+          image_list=""
+          for img in $images; do
+            image_path="$(dirname "$report_file")/$img"
+            if [ -f "$image_path" ]; then
+              image_list="$image_list,$image_path"
+            fi
+          done
+          image_list="${image_list#,}"  # remove leading comma
+          echo "images=$image_list" >> $GITHUB_OUTPUT
+          echo "Found images: $image_list"
+
+      - name: Read markdown content
+        id: read_markdown
+        if: steps.find_report.outputs.new_file != ''
+        run: |
+          content=$(cat "${{ steps.find_report.outputs.new_file }}")
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$content" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Send report email
+        if: steps.find_report.outputs.new_file != ''
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USER }}
+          password: ${{ secrets.MAIL_PASS }}
+          subject: "Weekly Athletics Report - ${{ steps.find_report.outputs.new_file }}"
+          from: "Craughwell AC Reports <${{ secrets.MAIL_USER }}>"
+          to: "mark.davis2@gmail.com,mark.davis2@hpe.com"
+          body: ${{ steps.read_markdown.outputs.content }}
+          attachments: ${{ steps.parse_images.outputs.images }}

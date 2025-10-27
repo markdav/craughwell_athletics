@@ -62,7 +62,7 @@ jobs:
           TEMPLATE_FILE="PRO_Reports/mail-template.md"
 
           if [ -f "$TEMPLATE_FILE" ]; then
-            sed '/REPORT GOES HERE/r '"$REPORT_FILE"'' "$TEMPLATE_FILE" | sed '/REPORT GOES HERE/d' > combined.md
+            sed '/REPORT_CONTENT/r '"$REPORT_FILE"'' "$TEMPLATE_FILE" | sed '/REPORT_CONTENT/d' > combined.md
           else
             cp "$REPORT_FILE" combined.md
           fi

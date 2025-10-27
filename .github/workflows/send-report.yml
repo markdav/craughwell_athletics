@@ -23,14 +23,13 @@ jobs:
             echo "No new report file found — skipping."
             exit 0
           fi
-          echo "new_file=$new_file" >> $GITHUB_OUTPUT
           echo "Found report: $new_file"
+          echo "$new_file" > report_file.txt
 
       - name: Prepare email body and attachments
-        id: build_email
-        if: steps.find_report.outputs.new_file != ''
+        if: ${{ always() }}
         run: |
-          REPORT_FILE="${{ steps.find_report.outputs.new_file }}"
+          REPORT_FILE=$(cat report_file.txt)
           TEMPLATE_FILE="PRO_Reports/mail-template.md"
 
           # Merge template with report
@@ -45,7 +44,7 @@ jobs:
 
           # Parse ![[image.jpg]] references for attachments
           images=$(grep -oP '!\[\[(.*?)\]\]' "$REPORT_FILE" | sed -E 's/!\[\[(.*)\]\]/\1/')
-          image_list=""
+          image_list="["
           for img in $images; do
             image_path="$(dirname "$REPORT_FILE")/$img"
             if [ -f "$image_path" ]; then
@@ -56,34 +55,29 @@ jobs:
               echo "WARNING: Image not found: $image_path"
             fi
           done
-          image_list="[${image_list%,}]"
-
-          echo "attachments=$image_list" >> $GITHUB_OUTPUT
-
-          # Write HTML body to output
-          echo "email_body<<EOF" >> $GITHUB_OUTPUT
-          cat combined.html >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          image_list="${image_list%,}]"
+          echo "$image_list" > attachments.json
 
       - name: Send report via Resend
-        if: steps.find_report.outputs.new_file != ''
+        if: ${{ always() }}
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
-          body=$(jq -n \
-            --arg from 'Craughwell AC Reports <onboarding@resend.dev>' \
-            --argjson to '["mark.davis2@gmail.com","mark.davis2@hpe.com"]' \
-            --arg subject "Weekly Athletics Report" \
-            --arg html "${{ steps.build_email.outputs.email_body }}" \
-            --argjson attachments "${{ steps.build_email.outputs.attachments }}" \
-            '{from:$from, to:$to, subject:$subject, html:$html, attachments:$attachments}')
+          html_body=$(cat combined.html)
+          attachments=$(cat attachments.json)
 
           echo "Sending email..."
           curl -s -o response.txt -w "%{http_code}" \
             -X POST 'https://api.resend.com/emails' \
             -H "Authorization: Bearer $RESEND_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "$body"
+            -d "$(jq -n \
+                  --arg from 'Craughwell AC Reports <onboarding@resend.dev>' \
+                  --argjson to '["mark.davis2@gmail.com","mark.davis2@hpe.com"]' \
+                  --arg subject 'Weekly Athletics Report' \
+                  --arg html "$html_body" \
+                  --argjson attachments "$attachments" \
+                  '{from:$from, to:$to, subject:$subject, html:$html, attachments:$attachments}')"
 
           echo "Response:"
           cat response.txt

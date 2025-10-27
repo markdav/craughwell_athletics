@@ -67,11 +67,10 @@ jobs:
             cp "$REPORT_FILE" combined.md
           fi
 
-          {
-            echo "email_body<<EOF"
-            cat combined.md
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+          # Correct way to write multi-line output for GitHub Actions
+          echo "email_body<<EOF" >> $GITHUB_OUTPUT
+          cat combined.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Send report email via Resend
         env:

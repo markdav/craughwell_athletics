@@ -77,16 +77,19 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           RECIPIENT_EMAILS: ${{ vars.RECIPIENT_EMAILS }}
         run: |
+          # Parse recipient emails from environment variable
+          echo "$RECIPIENT_EMAILS" > recipients.json
+          
           # Build JSON payload using files instead of command-line args
           jq -n \
             --arg from 'Craughwell AC Reports <onboarding@resend.dev>' \
-            --argjson to "$RECIPIENT_EMAILS" \
+            --slurpfile to recipients.json \
             --arg subject "Weekly Athletics Report - ${{ steps.find_report.outputs.report_date }}" \
             --rawfile html combined.html \
             --slurpfile attachments attachments.json \
             '{
               from: $from,
-              to: $to,
+              to: $to[0],
               subject: $subject,
               html: $html,
               attachments: $attachments[0]

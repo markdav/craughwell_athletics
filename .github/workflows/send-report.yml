@@ -79,9 +79,9 @@ jobs:
         run: |
           body=$(jq -n \
             --arg from 'Craughwell AC Reports <onboarding@resend.dev>' \
-            --arg to 'mark.davis2@gmail.com,mark.davis2@hpe.com' \
             --arg subject 'Weekly Athletics Report' \
             --arg html "$(jq -Rs . < combined.md | jq -r .)" \
+            --argjson to '["mark.davis2@gmail.com","mark.davis2@hpe.com"]' \
             '{from:$from, to:$to, subject:$subject, html:$html}')
 
           echo "Sending email..."

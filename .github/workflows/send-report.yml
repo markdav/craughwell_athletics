@@ -75,11 +75,12 @@ jobs:
         if: steps.find_report.outputs.skip != 'true'
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RECIPIENT_EMAILS: ${{ vars.RECIPIENT_EMAILS }}
         run: |
           # Build JSON payload using files instead of command-line args
           jq -n \
             --arg from 'Craughwell AC Reports <onboarding@resend.dev>' \
-            --argjson to '["mark.davis2@gmail.com","mark.davis2@hpe.com"]' \
+            --argjson to "$RECIPIENT_EMAILS" \
             --arg subject "Weekly Athletics Report - ${{ steps.find_report.outputs.report_date }}" \
             --rawfile html combined.html \
             --slurpfile attachments attachments.json \
